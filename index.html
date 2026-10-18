@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drive Systems Kinematics Lab | Interactive 2D Robotics Simulator</title>
+  <meta name="description" content="Explore and drive Mecanum, Swerve, Tank, X-Drive, Ackermann, and Kiwi robotic drivetrains with real-time 2D physics, vector kinematics, and force decomposition.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+</head>
+<body>
+
+  <!-- Top Navigation & Brand Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
+          <path d="M4.93 4.93l2.12 2.12m9.9 9.9l2.12 2.12M4.93 19.07l2.12-2.12m9.9-9.9l2.12-2.12"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">DRIVE KINEMATICS LAB</h1>
+      </div>
+      <span class="brand-badge">SIMULATOR ACTIVE • 60 FPS</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-utility" id="soundToggle" title="Toggle Synthesized Electric Motor Audio">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <span class="sound-label">Audio OFF</span>
+      </button>
+
+      <button class="btn-utility" id="helpBtn" title="Keyboard Controls & Guide">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span>Controls Guide</span>
+      </button>
+
+      <a href="https://seamonsters-2605.github.io/archive/mecanum/" target="_blank" rel="noopener" class="btn-utility" title="Original Seamonsters 2605 Inspiration">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        <span>Inspiration Reference</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Drive System Selector Tabs -->
+  <nav class="system-tabs-bar" aria-label="Drive Systems">
+    <button class="system-tab active" data-system="mecanum">
+      <span>Mecanum Drive</span>
+      <span class="tab-badge">45° Rollers</span>
+    </button>
+    <button class="system-tab" data-system="swerve">
+      <span>Coaxial Swerve</span>
+      <span class="tab-badge">Steered Pods</span>
+    </button>
+    <button class="system-tab" data-system="tank">
+      <span>Tank / Differential</span>
+      <span class="tab-badge">Skid-Steer</span>
+    </button>
+    <button class="system-tab" data-system="xdrive">
+      <span>Holonomic X-Drive</span>
+      <span class="tab-badge">4-Omni</span>
+    </button>
+    <button class="system-tab" data-system="ackermann">
+      <span>Ackermann Steering</span>
+      <span class="tab-badge">Car Geometry</span>
+    </button>
+    <button class="system-tab" data-system="kiwi">
+      <span>Kiwi 3-Wheel</span>
+      <span class="tab-badge">120° Omni</span>
+    </button>
+  </nav>
+
+  <!-- Main Viewport Grid -->
+  <main class="main-dashboard">
+
+    <!-- LEFT COLUMN: ARENA & DRIVING SIMULATOR -->
+    <section class="arena-panel">
+
+      <!-- Arena Top Toolbar -->
+      <div class="arena-toolbar">
+        <div class="toolbar-group">
+          <button class="toolbar-btn" id="fieldCentricToggle" title="Toggle between Field-Centric and Robot-Centric Driving">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="12 2 15 9 9 9"></polygon>
+            </svg>
+            <span class="mode-label">Robot-Centric</span>
+          </button>
+
+          <button class="toolbar-btn active" id="toggleVectors" title="Toggle Individual Wheel 45° Force Vectors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+            <span>Forces (Green)</span>
+          </button>
+
+          <button class="toolbar-btn active" id="toggleComponents" title="Toggle Dashed Fx/Fy Vector Decomposition Right-Triangles">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 20h16M4 4v16M4 4l16 16"></path>
+            </svg>
+            <span>Decomp (Fx, Fy)</span>
+          </button>
+
+          <button class="toolbar-btn active" id="toggleVelocity" title="Toggle Resultant Velocity Vector">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span>Velocity (Cyan)</span>
+          </button>
+
+          <button class="toolbar-btn" id="scaleToggle" title="Cycle Robot Size for Classroom Presentations (1.0x / 1.35x / 1.7x)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+            <span class="scale-label">Size: 1.0x</span>
+          </button>
+        </div>
+
+        <div class="toolbar-group">
+          <div class="slider-group" title="Adjust Drive Speed Multiplier">
+            <span>SPEED:</span>
+            <input type="range" id="speedSlider" min="0.3" max="1.5" step="0.1" value="1.0">
+            <span id="speedVal">100%</span>
+          </div>
+
+          <button class="toolbar-btn" id="timeScaleToggle" title="Cycle Simulation Slow-Motion Speed (1.0x / 0.5x / 0.25x)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="timescale-label">1.0x Speed</span>
+          </button>
+
+          <button class="toolbar-btn" id="pauseToggle" title="Pause or Freeze Simulation to inspect wheel mechanics">
+            <span class="pause-label">Pause ⏸</span>
+          </button>
+
+          <button class="toolbar-btn" id="clearTrailsBtn" title="Clear Skid Marks">
+            Clear Trails
+          </button>
+
+          <button class="toolbar-btn" id="resetBtn" title="Reset Robot to Center">
+            Reset Pose
+          </button>
+
+          <button class="toolbar-btn" id="expandTrackToggle" title="Toggle Full-Width Panoramic Driving Floor">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            <span class="expand-label">Expand Track ⛶</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Playground Scenarios Selector -->
+      <div class="scenarios-bar">
+        <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase;">TRACK:</span>
+        <button class="scenario-chip active" data-scenario="open">⚡ Open Track (No Obstacles)</button>
+        <button class="scenario-chip" data-scenario="sandbox">Sandbox (Cones & Blocks)</button>
+        <button class="scenario-chip" data-scenario="parking">Parallel Park Challenge</button>
+        <button class="scenario-chip" data-scenario="slalom">Slalom Gate Run</button>
+        <button class="scenario-chip" data-scenario="docking">Precision Docking</button>
+      </div>
+
+      <!-- Interactive Canvas Arena -->
+      <div class="arena-container" id="arenaContainer">
+        <canvas id="arenaCanvas"></canvas>
+
+        <!-- On-Screen Dual Virtual Joysticks -->
+        <div class="joystick-overlay">
+          <!-- Translation Joystick (Left) -->
+          <div class="joystick-module translation">
+            <div class="joystick-base" id="leftJoystick">
+              <div class="joystick-crosshair"></div>
+              <div class="joystick-knob" id="leftJoystickKnob"></div>
+            </div>
+            <span class="joystick-label">Translation (X / Y)</span>
+          </div>
+
+          <!-- Rotation Joystick (Right) -->
+          <div class="joystick-module rotation">
+            <div class="joystick-base" id="rightJoystick">
+              <div class="joystick-crosshair"></div>
+              <div class="joystick-knob" id="rightJoystickKnob"></div>
+            </div>
+            <span class="joystick-label">Rotation (CW / CCW)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Scenario Status Message Banner -->
+      <div class="scenario-status-banner" id="scenarioStatus">
+        Free testbed. Drive around, test maneuvers, and observe wheel vectors.
+      </div>
+
+      <!-- Controls Hint Bar -->
+      <div class="controls-hint-bar">
+        <div>
+          <span>Drive: <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> / <span class="key-badge">↑</span> <span class="key-badge">←</span> <span class="key-badge">↓</span> <span class="key-badge">→</span></span>
+          <span style="margin-left: 12px;">Rotate: <span class="key-badge">Q</span> / <span class="key-badge">E</span></span>
+          <span style="margin-left: 12px;">Brake: <span class="key-badge">Space</span></span>
+        </div>
+        <div>
+          <span style="color: var(--accent-cyan);">Touch / Mouse Joysticks & Gamepad Supported</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: TELEMETRY & KINEMATICS DASHBOARD -->
+    <aside class="info-panel">
+
+      <!-- Robot Telemetry HUD Strip -->
+      <div class="telemetry-hud-strip">
+        <div class="hud-item">
+          <span class="hud-label">Linear Speed</span>
+          <span class="hud-val" id="telSpeed">0.00 m/s</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Heading</span>
+          <span class="hud-val" id="telHeading">0°</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Angular Rate</span>
+          <span class="hud-val" id="telOmega">0°/s</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Coordinates</span>
+          <span class="hud-val" id="telCoord" style="font-size: 0.8rem; line-height: 1.6;">X: 0, Y: 0</span>
+        </div>
+      </div>
+
+      <!-- Wheel Telemetry Matrix -->
+      <div class="card">
+        <div class="card-title">
+          <span>REAL-TIME WHEEL TELEMETRY</span>
+          <span style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--accent-cyan);">RPM & VOLTAGE</span>
+        </div>
+        <div class="wheel-telemetry-grid" id="wheelTelemetryGrid">
+          <!-- Dynamically populated per drive system -->
+        </div>
+      </div>
+
+      <!-- Drive System Profile & Mechanics -->
+      <div class="card">
+        <div class="profile-header">
+          <div>
+            <h2 class="profile-title" id="profileTitle">Mecanum Drive</h2>
+            <p class="profile-tagline" id="profileTagline">Instantaneous omnidirectional translation & rotation</p>
+          </div>
+          <span class="brand-badge" id="profileBadge" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border-color: var(--accent-cyan);">Holonomic (3 DOF)</span>
+        </div>
+
+        <p class="profile-desc" id="profileDesc">
+          Mecanum drive utilizes four specialized wheels whose rims are ringed with passive rollers angled at 45° to the wheel plane. By coordinating wheel spin directions, diagonal forces sum constructively to glide in any vector.
+        </p>
+
+        <!-- Specs Matrix -->
+        <div class="specs-grid">
+          <div class="spec-item">
+            <span class="spec-label">Agility</span>
+            <span class="spec-val" id="specManeuver">98%</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Traction</span>
+            <span class="spec-val" id="specTraction">65%</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Mech Complexity</span>
+            <span class="spec-val" id="specMech">Medium</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Code Complexity</span>
+            <span class="spec-val" id="specCode">Medium</span>
+          </div>
+        </div>
+
+        <!-- Pros & Cons -->
+        <div class="pros-cons-grid">
+          <div class="pros-col">
+            <h4>Advantages</h4>
+            <ul class="pros-cons-list" id="profilePros"></ul>
+          </div>
+          <div class="cons-col">
+            <h4>Trade-Offs</h4>
+            <ul class="pros-cons-list" id="profileCons"></ul>
+          </div>
+        </div>
+
+        <!-- Live Kinematics Equations -->
+        <div style="margin-top: 10px;">
+          <h4 style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Inverse Kinematics Resolution:</h4>
+          <pre class="equation-box" id="equationsContent"></pre>
+        </div>
+      </div>
+
+      <!-- Educational Vector Decomposition & Addition Guide (For Students!) -->
+      <div class="card" id="educationalVectorCard">
+        <div class="card-title">
+          <span>VECTOR PHYSICS & ADDITION MATRIX</span>
+          <span style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--accent-emerald);">STUDENT GUIDE</span>
+        </div>
+
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">
+          <strong>How 45° Mecanum Rollers Work:</strong> Because rollers spin freely along their axis, each wheel can only push against the ground <em>perpendicular</em> to the roller (at 45°). By pairing forward and reverse motor spins, components cancel or add together:
+        </p>
+
+        <div class="vector-guide-grid">
+          <div class="guide-item">
+            <span class="guide-title">1. Forward Drive</span>
+            <span class="guide-formula">FL(+) FR(+) RL(+) RR(+)</span>
+            <p class="guide-explanation">Lateral forces (+Fx vs -Fx) cancel to <strong>0</strong>. Forward forces add: <span style="color: var(--accent-emerald); font-weight: bold;">+4·Fy</span>.</p>
+          </div>
+          <div class="guide-item">
+            <span class="guide-title">2. Pure Strafe Right</span>
+            <span class="guide-formula">FL(+) FR(-) RL(-) RR(+)</span>
+            <p class="guide-explanation">Forward forces (+Fy vs -Fy) cancel to <strong>0</strong>. Lateral forces sum rightward: <span style="color: var(--accent-cyan); font-weight: bold;">+4·Fx</span>.</p>
+          </div>
+          <div class="guide-item">
+            <span class="guide-title">3. Rotate In-Place</span>
+            <span class="guide-formula">FL(+) FR(-) RL(+) RR(-)</span>
+            <p class="guide-explanation">All translational forces cancel to 0. Generates pure angular torque: <span style="color: var(--accent-purple); font-weight: bold;">τ = 4·F·R</span>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Choreographed Automated Maneuvers -->
+      <div class="card">
+        <div class="card-title">
+          <span>AUTOMATED CHOREOGRAPHY</span>
+          <span style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-muted);">AUTO-DEMO</span>
+        </div>
+        <div class="maneuvers-grid">
+          <button class="maneuver-btn" data-maneuver="strafe" title="Demonstrate pure sideways strafing without changing heading">
+            <span class="maneuver-icon">↔️</span>
+            <span>Pure Strafe 90°</span>
+          </button>
+          <button class="maneuver-btn" data-maneuver="spin" title="Demonstrate pure rotation around center of mass">
+            <span class="maneuver-icon">🔄</span>
+            <span>Rotate 360°</span>
+          </button>
+          <button class="maneuver-btn" data-maneuver="diagonal" title="Demonstrate 45 degree diagonal translation">
+            <span class="maneuver-icon">↗️</span>
+            <span>Diagonal 45°</span>
+          </button>
+          <button class="maneuver-btn" data-maneuver="orbit" title="Orbit a point while keeping nose pointed inwards">
+            <span class="maneuver-icon">🪐</span>
+            <span>Center Orbit</span>
+          </button>
+          <button class="maneuver-btn" data-maneuver="figure8" title="Perform a continuous figure-8 slalom">
+            <span class="maneuver-icon">♾️</span>
+            <span>Figure-8 Slalom</span>
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- BOTTOM EXPANDABLE: COMPARISON MATRIX -->
+  <section class="comparison-section">
+    <div class="card">
+      <div class="card-title">
+        <span>DRIVETRAIN ARCHITECTURE COMPARISON MATRIX</span>
+        <span style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--accent-cyan);">ENGINEERING BENCHMARK</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Drive System</th>
+              <th>Degrees of Freedom</th>
+              <th>Traction / Push</th>
+              <th>Strafing Ability</th>
+              <th>Mechanical Complexity</th>
+              <th>Software Difficulty</th>
+              <th>Floor Scrub</th>
+              <th>Typical Applications</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: #ffffff;">Mecanum Drive</strong></td>
+              <td><span class="pill-purple">3 DOF (Holonomic)</span></td>
+              <td>Medium (~65%)</td>
+              <td><span class="pill-green">Yes (45° Rollers)</span></td>
+              <td>Medium (4 Motors)</td>
+              <td>Medium (Matrix kinematics)</td>
+              <td>Low (Free rollers)</td>
+              <td>Warehouse AGVs, FIRST Robotics, tight staging areas</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #ffffff;">Coaxial Swerve</strong></td>
+              <td><span class="pill-purple">3 DOF (Holonomic)</span></td>
+              <td><span class="pill-green">Very High (~95%)</span></td>
+              <td><span class="pill-green">Yes (Steered Pods)</span></td>
+              <td>Very High (8 Motors + Encoders)</td>
+              <td>High (PID + Azimuth wrapping)</td>
+              <td>Zero (Pure rolling)</td>
+              <td>Elite FRC robots, advanced mobile research platforms</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #ffffff;">Tank / Skid-Steer</strong></td>
+              <td><span class="pill-yellow">2 DOF (Non-Holonomic)</span></td>
+              <td><span class="pill-green">Maximum (~100%)</span></td>
+              <td><span style="color: var(--accent-rose); font-weight: bold;">No (Pivots only)</span></td>
+              <td>Low (2-4 Motors, fixed axles)</td>
+              <td>Low (Differential equations)</td>
+              <td>High (Tire scrubbing in turns)</td>
+              <td>Construction, military tanks, Roomba, industrial tuggers</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #ffffff;">Holonomic X-Drive</strong></td>
+              <td><span class="pill-purple">3 DOF (Holonomic)</span></td>
+              <td>Medium (~70%)</td>
+              <td><span class="pill-green">Yes (45° Omni-wheels)</span></td>
+              <td>Medium (4 Motors, corner angles)</td>
+              <td>Medium (Trigonometric projection)</td>
+              <td>Low (Orthogonal rollers)</td>
+              <td>VEX Robotics competition, educational indoor bots</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #ffffff;">Ackermann Steering</strong></td>
+              <td><span class="pill-yellow">2 DOF (Car-like)</span></td>
+              <td><span class="pill-green">High (~90%)</span></td>
+              <td><span style="color: var(--accent-rose); font-weight: bold;">No (Turning radius limit)</span></td>
+              <td>High (Tie-rod, rack & differential)</td>
+              <td>Medium (ICC curve geometry)</td>
+              <td>Zero (True Ackermann geometry)</td>
+              <td>Passenger cars, autonomous highway vehicles, Mars rovers</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #ffffff;">Kiwi 3-Wheel Omni</strong></td>
+              <td><span class="pill-purple">3 DOF (Holonomic)</span></td>
+              <td>Low-Med (~60%)</td>
+              <td><span class="pill-green">Yes (120° Radial Omni)</span></td>
+              <td>Lowest (3 Motors, lightweight)</td>
+              <td>Medium (3-phase 120° math)</td>
+              <td>Low (Free rollers)</td>
+              <td>RoboCup small-size league, desktop robotics research</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Help & Shortcuts Modal -->
+  <div class="modal-backdrop" id="helpModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #ffffff;">CONTROLS & KINEMATICS GUIDE</h3>
+        <button class="modal-close-btn" id="closeHelp">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
+        Welcome to the <strong>Drive Kinematics Lab</strong>! This simulator demonstrates how different robotic drive trains transform motor rotations into 2D planar motion. In particular, notice how the <strong>45° angled rollers on Mecanum wheels</strong> generate diagonal contact force vectors (green arrows) that combine into pure lateral strafing or turning.
+      </p>
+
+      <div class="shortcut-grid">
+        <div class="shortcut-item">
+          <span>Forward / Backward</span>
+          <div><span class="key-badge">W</span> <span class="key-badge">S</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span>Strafe Left / Right</span>
+          <div><span class="key-badge">A</span> <span class="key-badge">D</span></div>
+        </div>
+        <div class="shortcut-item">
+          <span>Rotate Counter-Clockwise</span>
+          <span class="key-badge">Q</span>
+        </div>
+        <div class="shortcut-item">
+          <span>Rotate Clockwise</span>
+          <span class="key-badge">E</span>
+        </div>
+        <div class="shortcut-item">
+          <span>Emergency Handbrake</span>
+          <span class="key-badge">Space</span>
+        </div>
+        <div class="shortcut-item">
+          <span>Gamepad Controllers</span>
+          <span style="color: var(--accent-emerald); font-weight: 600;">Auto-detected</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.78rem; color: var(--text-muted);">
+        Inspired by Dawson Bowhay and Team Seamonsters 2605's Mecanum tutorial.
+      </div>
+    </div>
+  </div>
+
+  <!-- Main ES Module Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
